@@ -26,6 +26,7 @@ public:
     }
 };
 
+//jugad method not actual bully algo
 void startElection(list<processNode>& nodes, int nodeId) {
     int maxId = -1;
     for (auto& node : nodes) {
