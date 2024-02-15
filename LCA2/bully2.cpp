@@ -14,8 +14,9 @@ public:
     bool isAlive;
     bool hasStartedElection;
     int coordinator;
+    bool response;
 
-    Node() : id(nextId++), isAlive(true), hasStartedElection(false), coordinator(-1) {}
+    Node() : id(nextId++), isAlive(true), hasStartedElection(false), coordinator(-1), response(false) {}
 
     void disableNode()
     {
@@ -48,64 +49,38 @@ void startBullyElection(list<Node> &nodes, int startingNodeId)
         }
     }
 
-    // is node valid and alive?
-    if (startingNode != nodes.end() && startingNode->isAlive)
+    if(startingNode == nodes.end()){
+        return;
+    }
+
+    // is node alive and not started election
+    if (startingNode->isAlive && startingNode->hasStartedElection==false)
     {
-        // has the node already started election?
-        if (startingNode->hasStartedElection)
+        // cout<<startingNode->id<<endl;
+        auto temp=startingNode;
+        ++temp;
+        for (auto it = temp; it!=nodes.end(); it++)
         {
-            cout << "Node " << startingNodeId << " has already started an election. Cannot start another one." << endl;
+            cout<< startingNode->id << " sends election to " << it->id<<endl;
+            if(it->isAlive)
+            {
+                cout<< it->id << " sends OK."<<endl;
+                startingNode->response=true;
+            }
+
+        }
+
+        if(startingNode->response==false)
+        {
+            cout<<"No response, "<<startingNode->id<<" is coordinator."<<endl;
+            for (auto it = nodes.begin(); it != nodes.end(); ++it)
+            {
+                it->coordinator=startingNode->id;
+            }
             return;
         }
-
-        // Set hasStartedElection to true for the starting node
-        startingNode->hasStartedElection = true;
-        cout << "Node " << startingNodeId << " initiates election." << endl;
-
-        // Flag to track if any higher node responds
-        bool higherNodeResponded = false;
-
-        // Find the higher nodes
-        list<Node> higherNodes;
-        for (auto it = next(startingNode); it != nodes.end(); ++it)
-        {
-            if (it->id > startingNodeId && it->isAlive)
-            {
-                higherNodes.push_back(*it);
-            }
-        }
-
-        // If there are higher nodes, send election messages to them
-        if (!higherNodes.empty())
-        {
-            cout << "Sending election messages to higher nodes..." << endl;
-            for (const auto &higherNode : higherNodes)
-            {
-                cout << "Node " << startingNodeId << " sends election message to node " << higherNode.id << endl;
-                higherNodeResponded = true; // Assume higher node responded
-                // Recursive call to start election at higher node
-                startBullyElection(nodes, higherNode.id);
-            }
-        }
-
-        // If no higher node responds, announce as coordinator
-        if (!higherNodeResponded)
-        {
-            cout << "No higher nodes responded. Node " << startingNodeId << " wins the election and becomes the coordinator." << endl;
-            startingNode->coordinator = startingNodeId;
-
-            // Reset hasStartedElection to false for all nodes and update coordinator ID
-            for (auto &node : nodes)
-            {
-                node.hasStartedElection = false;
-                node.coordinator = startingNodeId;
-            }
-        }
     }
-    else
-    {
-        cout << "Invalid or non-alive starting node ID. Please enter a valid node ID." << endl;
-    }
+    startBullyElection(nodes, startingNodeId+1);
 }
 
 int main()
@@ -197,6 +172,11 @@ int main()
                 cout << "Enter the starting node ID for the election: ";
                 cin >> startingNode;
                 startBullyElection(nodes, startingNode);
+                for(auto &node : nodes)
+                {
+                    node.hasStartedElection=false;
+                    node.response=false;
+                }
                 break;
             }
             case 2:
