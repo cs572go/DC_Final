@@ -14,10 +14,12 @@ int main()
 
     printf("Enter your name: ");
     fgets(name, sizeof(name), stdin);
+
     // Remove the newline character
     name[strcspn(name, "\n")] = '\0';
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    
     // Error handling for socket creation
     if (sockfd == -1)
     {
@@ -26,6 +28,7 @@ int main()
     }
 
     server_address.sin_family = AF_INET;
+    
     // change the inet_addr to server's ip and change the port to server's port
     server_address.sin_addr.s_addr = inet_addr("127.0.0.1");
     server_address.sin_port = htons(9129);

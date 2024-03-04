@@ -14,7 +14,7 @@ public:
     int re;
     int C;
     bool sent;
-    bool recieved;
+    bool received;
 
     Message(int se, int re, int sid, int rid)
     {
@@ -24,12 +24,12 @@ public:
         this->rid = rid;
         this->C = 0;
         this->sent = false;
-        this->recieved = false;
+        this->received = false;
     }
 
     void displayMessage()
     {
-        cout << "Sender " << this->sid << "," << this->se << "," << this->C << ", ; Reciever " << this->rid << "," << this->re << "; Status " << this->sent << "," << this->recieved << endl;
+        cout << "Sender- p" << this->sid << ", e" << this->se << "," << this->C << ", ; Reciever- p " << this->rid << ", e" << this->re << "; sent " << this->sent << ", received " << this->received << endl;
     }
 };
 
@@ -106,18 +106,19 @@ int main()
         m.displayMessage();
     }
 
-    cout<<"Event\t";
-    for (int i=0; i<np; i++)
+    cout << "Event\t";
+    for (int i = 0; i < np; i++)
     {
-        cout<<i+1<<"\t";
+        cout << "p" << i + 1 << "\t";
     }
-    cout<<endl;
+    cout << endl;
 
-    for (int i = 1; i <= max_msgs; i++)
+    for (int i = 0; i <= max_msgs; i++)
     {
-        cout<<"p"<<i<<"\t";
+        cout << "e" << i << "\t";
         for (auto &p : processes)
         {
+            cout << p.localC << "\t";
             p.event += 1;
             p.localC += p.d;
 
@@ -125,24 +126,26 @@ int main()
             for (auto &m : messages)
             {
                 if (m.sid == p.id && m.se == p.event)
-                {                   
+                {
                     m.C = p.localC; // piggyback sender time
-                    m.sent = true;                
+                    m.sent = true;
                 }
             }
-            
+
             // rec
             for (auto &m : messages)
             {
                 if (m.rid == p.id && m.re == p.event)
-                {                                      
-                    p.localC = max(p.localC, m.C); // set receiver time
-                    m.recieved = true;
+                {
+                    // set receiver time
+                    p.localC = max(p.localC, m.C);
+                    p.localC += p.d;
+                    m.received = true;
+                    // m.displayMessage();
                 }
             }
-            cout<<p.localC<<"\t";
         }
-        cout<<endl;
+        cout << endl;
     }
 
     // for (auto &p : processes)
